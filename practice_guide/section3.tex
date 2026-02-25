@@ -1,0 +1,276 @@
+\section{Policy Gradients \& Modern Architectures}
+
+\begin{problem}{REINFORCE: Policy Gradient with Softmax}
+Consider a policy $\pi(a|s, \theta)$ defined by a softmax distribution over action preferences $h(s, a, \theta) = \theta^T \phi(s, a)$.
+For a single state $s$, there are 2 actions $a_1$ and $a_2$.
+The feature vectors are:
+\begin{itemize}
+    \item $\phi(s, a_1) = [1, 0]^T$
+    \item $\phi(s, a_2) = [0, 1]^T$
+\end{itemize}
+Current parameter vector $\theta = [0.5, 0.2]^T$.
+Input state feature $\phi(s) = [1, 1]^T$ is not used directly, the preference is linear in action features.
+
+The probabilities are given by:
+\[ \pi(a|s) = \frac{e^{h(s, a)}}{\sum_{b} e^{h(s, b)}} \]
+where $h(s, a) = \theta^T \phi(s, a)$.
+
+\textbf{Scenario:}
+The agent samples action $A_t = a_1$.
+The return from this time step until the end of the episode is $G_t = 10.0$.
+The baseline $b(s) = 0$ (for simplicity).
+Step size $\alpha = 0.1$.
+
+\begin{enumerate}[label=(\alph*)]
+    \item Calculate the action preferences $h(s, a_1)$ and $h(s, a_2)$.
+    \item Calculate the policy probabilities $\pi(a_1|s)$ and $\pi(a_2|s)$.
+    \item Calculate the gradient of the log-probability $\nabla_\theta \ln \pi(A_t|s)$ for the chosen action $A_t = a_1$.
+    \item Update the parameter vector $\theta$ using the REINFORCE update rule.
+\end{enumerate}
+\end{problem}
+
+\begin{solution}
+\textbf{(a) Action Preferences}
+\[ h(s, a_1) = \theta^T \phi(s, a_1) = [0.5, 0.2] \cdot [1, 0]^T = 0.5 \]
+\[ h(s, a_2) = \theta^T \phi(s, a_2) = [0.5, 0.2] \cdot [0, 1]^T = 0.2 \]
+
+\textbf{(b) Policy Probabilities}
+Compute exponentials:
+\[ e^{0.5} \approx 1.6487 \]
+\[ e^{0.2} \approx 1.2214 \]
+Sum: $Z = 1.6487 + 1.2214 = 2.8701$.
+
+\[ \pi(a_1|s) = \frac{1.6487}{2.8701} \approx 0.5744 \]
+\[ \pi(a_2|s) = \frac{1.2214}{2.8701} \approx 0.4256 \]
+
+\textbf{(c) Gradient of Log-Probability}
+For softmax policy, the gradient is:
+\[ \nabla_\theta \ln \pi(A_t|s) = \phi(s, A_t) - \sum_b \pi(b|s) \phi(s, b) \]
+\[ = \phi(s, A_t) - \mathbb{E}_\pi[\phi(s, \cdot)] \]
+
+Chosen action $A_t = a_1$.
+$\phi(s, a_1) = [1, 0]^T$.
+
+Expected feature vector:
+\[ \mathbb{E}_\phi = 0.5744 [1, 0]^T + 0.4256 [0, 1]^T = [0.5744, 0.4256]^T \]
+
+Gradient:
+\[ \nabla \ln \pi(a_1|s) = [1, 0]^T - [0.5744, 0.4256]^T = [0.4256, -0.4256]^T \]
+
+\textbf{(d) Parameter Update}
+Update rule: $\theta_{t+1} = \theta_t + \alpha G_t \nabla \ln \pi(A_t|s)$.
+\[ \theta_{t+1} = \begin{bmatrix} 0.5 \\ 0.2 \end{bmatrix} + 0.1(10.0) \begin{bmatrix} 0.4256 \\ -0.4256 \end{bmatrix} \]
+\[ = \begin{bmatrix} 0.5 \\ 0.2 \end{bmatrix} + 1.0 \begin{bmatrix} 0.4256 \\ -0.4256 \end{bmatrix} \]
+\[ = \begin{bmatrix} 0.9256 \\ -0.2256 \end{bmatrix} \]
+The parameter for the chosen action ($a_1$, index 1) increased, and for the other action decreased.
+\end{solution}
+
+\newpage
+
+\begin{problem}{One-Step Actor-Critic Update}
+An Actor-Critic agent uses a linear Critic to estimate value $V(s, \mathbf{w}) = \mathbf{w}^T \mathbf{x}(s)$ and a softmax Actor $\pi(a|s, \mathbf{\theta})$.
+
+\textbf{Current State $S_t$:}
+Feature vector $\mathbf{x}(S_t) = [1, 2]^T$.
+Critic weights $\mathbf{w} = [0.5, 0.1]^T$.
+Value Estimate $V(S_t) = 0.5(1) + 0.1(2) = 0.7$.
+
+\textbf{Transition:}
+Action $A_t$ chosen.
+Reward $R_{t+1} = 1.0$.
+Next State $S_{t+1}$ feature vector $\mathbf{x}(S_{t+1}) = [1, 0]^T$.
+Discount $\gamma = 0.9$.
+
+\textbf{Actor Gradient:}
+Assume we calculated the eligibility vector (gradient of log-prob) for the chosen action to be:
+$\nabla_\theta \ln \pi(A_t|S_t) = [0.2, -0.1]^T$.
+
+\begin{enumerate}[label=(\alph*)]
+    \item Calculate the value of the next state $V(S_{t+1})$.
+    \item Calculate the TD Error $\delta_t$.
+    \item Update the Critic weights $\mathbf{w}$ (step size $\alpha_w = 0.1$).
+    \item Update the Actor weights $\mathbf{\theta}$ (step size $\alpha_\theta = 0.1$).
+\end{enumerate}
+\end{problem}
+
+\begin{solution}
+\textbf{(a) Next State Value}
+\[ V(S_{t+1}) = \mathbf{w}^T \mathbf{x}(S_{t+1}) = [0.5, 0.1] \cdot [1, 0]^T = 0.5 \]
+
+\textbf{(b) TD Error}
+\[ \delta_t = R_{t+1} + \gamma V(S_{t+1}) - V(S_t) \]
+\[ \delta_t = 1.0 + 0.9(0.5) - 0.7 \]
+\[ = 1.0 + 0.45 - 0.7 = 0.75 \]
+
+\textbf{(c) Update Critic Weights}
+Update rule: $\mathbf{w} \leftarrow \mathbf{w} + \alpha_w \delta_t \nabla V(S_t)$.
+Gradient $\nabla V(S_t) = \mathbf{x}(S_t) = [1, 2]^T$.
+\[ \mathbf{w}_{new} = [0.5, 0.1]^T + 0.1(0.75) [1, 2]^T \]
+\[ = [0.5, 0.1]^T + 0.075 [1, 2]^T \]
+\[ = [0.5, 0.1]^T + [0.075, 0.15]^T \]
+\[ = [0.575, 0.25]^T \]
+
+\textbf{(d) Update Actor Weights}
+Update rule: $\mathbf{\theta} \leftarrow \mathbf{\theta} + \alpha_\theta \delta_t \nabla \ln \pi(A_t|S_t)$.
+Assume initial $\mathbf{\theta}_{old} = [0, 0]^T$ (or just calculate the delta).
+\[ \Delta \mathbf{\theta} = 0.1(0.75) [0.2, -0.1]^T \]
+\[ = 0.075 [0.2, -0.1]^T = [0.015, -0.0075]^T \]
+\end{solution}
+
+\newpage
+
+\begin{problem}{PPO Clipped Objective}
+Proximal Policy Optimization (PPO) uses a clipped surrogate objective to prevent large policy updates.
+\[ L^{CLIP}(\theta) = \mathbb{E}_t [ \min(r_t(\theta) \hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_t) ] \]
+where $r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)}$ is the probability ratio.
+Let $\epsilon = 0.2$.
+
+\textbf{Case 1 (Positive Advantage):}
+\begin{itemize}
+    \item Advantage $\hat{A}_t = 1.0$.
+    \item Old prob $\pi_{old} = 0.4$.
+    \item New prob $\pi_{new} = 0.5$.
+\end{itemize}
+
+\textbf{Case 2 (Negative Advantage):}
+\begin{itemize}
+    \item Advantage $\hat{A}_t = -1.0$.
+    \item Old prob $\pi_{old} = 0.4$.
+    \item New prob $\pi_{new} = 0.2$.
+\end{itemize}
+
+\begin{enumerate}[label=(\alph*)]
+    \item Calculate the probability ratio $r_t$ for Case 1. Does clipping activate? Calculate the contribution to the loss.
+    \item Calculate the probability ratio $r_t$ for Case 2. Does clipping activate? Calculate the contribution to the loss.
+    \item Explain intuitively why PPO clips the objective in Case 1.
+\end{enumerate}
+\end{problem}
+
+\begin{solution}
+\textbf{(a) Case 1 (Positive Advantage)}
+\[ r_t = \frac{0.5}{0.4} = 1.25 \]
+We compute the two terms in the minimum:
+1. Unclipped: $r_t \hat{A}_t = 1.25 \times 1.0 = 1.25$.
+2. Clipped: $\text{clip}(1.25, 0.8, 1.2) \hat{A}_t$.
+Since $1.25 > 1.2$, the term is clipped to $1.2$.
+Value: $1.2 \times 1.0 = 1.2$.
+
+Final Loss Contribution: $\min(1.25, 1.2) = 1.2$.
+\textbf{Yes, clipping activates.}
+
+\textbf{(b) Case 2 (Negative Advantage)}
+\[ r_t = \frac{0.2}{0.4} = 0.5 \]
+We compute the two terms:
+1. Unclipped: $r_t \hat{A}_t = 0.5 \times (-1.0) = -0.5$.
+2. Clipped: $\text{clip}(0.5, 0.8, 1.2) \hat{A}_t$.
+Since $0.5 < 0.8$, the term is clipped to $0.8$.
+Value: $0.8 \times (-1.0) = -0.8$.
+
+Final Loss Contribution: $\min(-0.5, -0.8) = -0.8$.
+\textbf{No, clipping does not activate (in the sense of the min operator).}
+Wait, let's re-evaluate the min operator logic for negative numbers.
+Unclipped: -0.5.
+Clipped: -0.8.
+$\min(-0.5, -0.8) = -0.8$.
+Actually, the PPO objective is maximized (gradient ascent), but if we define Loss as something to minimize (descent), signs flip. The standard PPO paper maximizes the objective $L$.
+Let's stick to Maximization language.
+Objective value is $\min(-0.5, -0.8) = -0.8$.
+So the objective is indeed the clipped version.
+Wait, -0.8 is smaller than -0.5. So the min operator selects -0.8.
+Does this make sense?
+If Advantage is negative, we want to decrease probability ($r_t < 1$).
+Here $r_t = 0.5$, we decreased it a lot.
+The unclipped objective gain would be -0.5 (better than -0.8).
+The clipped objective penalizes us more?
+Actually, for negative advantage:
+We want to decrease prob.
+If $r_t$ goes below $1-\epsilon$, the clipped term stays at $(1-\epsilon)A = 0.8(-1) = -0.8$.
+The unclipped term is $r_t A = 0.5(-1) = -0.5$.
+Since $A < 0$, as $r_t$ decreases (good!), $r_t A$ increases (becomes less negative).
+So $r_t A$ is the upper bound.
+The min operator takes $\min(-0.5, -0.8) = -0.8$.
+So the value is clamped at the lower value.
+This seems correct. It effectively ignores changes that drive the ratio too far down?
+Actually, PPO clipping for negative advantage is meant to preventing the ratio from going too close to 0 too fast?
+No, the standard interpretation is:
+If $A > 0$: we want to increase $r_t$. Clipping prevents $r_t$ from growing too large. $\min(r A, (1+\epsilon)A)$.
+If $A < 0$: we want to decrease $r_t$. Clipping prevents $r_t$ from shrinking too small?
+Let's check:
+$\min(r A, (1-\epsilon)A)$. Since $A$ is negative, $(1-\epsilon)A$ is a negative number (e.g. -0.8). $r A$ is e.g. -0.5.
+Min is -0.8.
+Wait, if we take the gradient of -0.8 (constant), it is 0.
+So if the ratio $r_t$ is below $1-\epsilon$ (0.8), the gradient is zero.
+So we stop decreasing the probability.
+Yes, that is the goal. We don't want to destroy the policy update by making probability 0.
+So in this case, yes, the "clipping mechanism" (the lower bound) is active. The value returned is the clipped value.
+
+\textbf{(c) Intuition for Case 1}
+In Case 1, the action was good ($A > 0$), so we increased its probability ($r_t = 1.25$). However, PPO limits how much we can update the policy in a single step to ensure stability (Trust Region). Since $1.25 > 1 + \epsilon = 1.2$, we clip the objective. This means the gradient will be zero for further increases in $r_t$, preventing the policy from changing too drastically and potentially collapsing performance.
+\end{solution}
+
+\newpage
+
+\begin{problem}{MCTS Trace (AlphaGo Style)}
+Consider a Monte Carlo Tree Search process. We are at a node $S_0$.
+The tree has the following structure and statistics $(W, N)$ where $W$ is total value and $N$ is visit count.
+Root $S_0$: $N=10$.
+Children of $S_0$:
+\begin{itemize}
+    \item $S_1$ (Action 1): $W=6, N=4$.
+    \item $S_2$ (Action 2): $W=3, N=3$.
+    \item $S_3$ (Action 3): $W=4, N=3$.
+\end{itemize}
+Exploration constant $c = 1.0$.
+Formula: $UCB = \frac{W}{N} + c \sqrt{\frac{\ln N_{parent}}{N}}$.
+
+\begin{enumerate}[label=(\alph*)]
+    \item Calculate the UCB value for each child node ($S_1, S_2, S_3$).
+    \item Which node is selected for the next simulation?
+    \item Suppose we select the winner, perform a rollout, and get a result $v = +1$ (Win).
+    \item Show the updated $(W, N)$ statistics for the path.
+\end{enumerate}
+\end{problem}
+
+\begin{solution}
+\textbf{(a) UCB Calculations}
+$N_{parent} = 10$. $\ln(10) \approx 2.3026$.
+
+Child $S_1$:
+\[ \text{Exploit} = 6/4 = 1.5 \]
+\[ \text{Explore} = 1.0 \sqrt{2.3026 / 4} = \sqrt{0.5756} \approx 0.7587 \]
+\[ UCB_1 = 1.5 + 0.7587 = 2.2587 \]
+
+Child $S_2$:
+\[ \text{Exploit} = 3/3 = 1.0 \]
+\[ \text{Explore} = 1.0 \sqrt{2.3026 / 3} = \sqrt{0.7675} \approx 0.876 \]
+\[ UCB_2 = 1.0 + 0.876 = 1.876 \]
+
+Child $S_3$:
+\[ \text{Exploit} = 4/3 = 1.333 \]
+\[ \text{Explore} = 1.0 \sqrt{2.3026 / 3} \approx 0.876 \]
+\[ UCB_3 = 1.333 + 0.876 = 2.209 \]
+
+\textbf{(b) Selection}
+The node with the highest UCB value is $S_1$ (2.2587).
+So, \textbf{$S_1$ is selected}.
+
+\textbf{(c) Update}
+We selected $S_1$.
+Rollout result $v = +1$.
+We update the statistics for $S_1$ and the Root $S_0$.
+
+For $S_1$:
+\[ N_{new} = 4 + 1 = 5 \]
+\[ W_{new} = 6 + 1 = 7 \]
+
+For Root $S_0$:
+\[ N_{new} = 10 + 1 = 11 \]
+% Note: Usually we don't track W for root for selection, but for completeness.
+\[ W_{new} = \text{sum of children values} = \dots \]
+Or simply update accumulated value:
+\[ W_{root, new} = W_{root, old} + 1 \]
+
+Updated Stats:
+$S_1: (W=7, N=5)$.
+$S_0: (N=11)$.
+\end{solution}

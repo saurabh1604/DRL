@@ -1,0 +1,94 @@
+\documentclass[12pt, a4paper]{article}
+
+% --- Packages ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes, arrows, positioning, calc, trees, backgrounds}
+\usepackage[most]{tcolorbox}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{fancyhdr}
+
+% --- Colors ---
+\definecolor{deepblue}{RGB}{0, 51, 102}
+\definecolor{lightgray}{RGB}{240, 240, 240}
+\definecolor{accentcolor}{RGB}{204, 0, 0}
+
+% --- Custom Environments ---
+\newtcolorbox[auto counter]{problem}[2][]{%
+    colback=white,
+    colframe=deepblue,
+    coltitle=white,
+    fonttitle=\bfseries\large,
+    title=Problem \thetcbcounter: #2,
+    sharp corners,
+    boxrule=0.8mm,
+    #1
+}
+
+\newtcolorbox{solution}{%
+    colback=lightgray!30,
+    colframe=accentcolor!80,
+    coltitle=white,
+    fonttitle=\bfseries,
+    title=Step-by-Step Solution,
+    sharp corners=south,
+    boxrule=0.5mm,
+    breakable
+}
+
+\newtcolorbox{concept}[1][]{%
+    colback=yellow!10,
+    colframe=orange!80!black,
+    title=Key Concept,
+    fonttitle=\bfseries,
+    #1
+}
+
+% --- Header/Footer ---
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textbf{Deep Reinforcement Learning}}
+\rhead{Practice Problem Set}
+\cfoot{\thepage}
+
+% --- TikZ Styles ---
+\tikzset{
+    state/.style={circle, draw, minimum size=1cm, fill=blue!10, thick},
+    action/.style={circle, draw, minimum size=0.5cm, fill=red!10, thick},
+    netnode/.style={circle, draw, minimum size=0.8cm, fill=green!10},
+    arrow/.style={->, >=stealth, thick},
+    box/.style={rectangle, draw, minimum width=2cm, minimum height=1cm, fill=white, thick}
+}
+
+% --- Title Info ---
+\title{\textbf{Deep Reinforcement Learning Practice Guide}\\
+\large Numerical Problems \& Detailed Solutions}
+\author{Comprehensive Exam Preparation}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introduction}
+This practice guide contains 10 distinct numerical and conceptual problems covering the spectrum of Deep Reinforcement Learning. The problems are designed to be challenging, similar to previous exam questions, with a heavy emphasis on deep learning integration (DQN, Policy Gradients, Actor-Critic) while establishing foundations with Bandits and MDPs.
+
+Each problem includes a detailed, step-by-step solution to aid in understanding the mechanics of the algorithms.
+
+\tableofcontents
+\newpage
+
+% --- Problems will be inserted here ---
+\input{section1.tex}
+\input{section2.tex}
+\input{section3.tex}
+
+\end{document}
