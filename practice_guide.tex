@@ -27,28 +27,35 @@
     before upper={\tcbtitle\par\vspace{2mm}}
 }
 
-% Problem Box: Simple border, minimal visual noise
+% Problem Box: Light Blue background
 \newtcolorbox{problembox}[2][]{
     title={Problem #2},
-    colback=gray!5!white, % Very light gray background for problem statement
-    drop shadow=black!10!white, % Subtle shadow
+    colback=blue!5!white,
+    colframe=blue!50!black,
+    coltitle=white,
+    fonttitle=\bfseries\large,
+    drop shadow=black!10!white,
     #1
 }
 
-% Guide Box: Italicized hint, minimal frame
+% Guide Box: Light Orange/Yellow background
 \newtcolorbox{guidebox}[1][]{
     title={Guide / Hint},
-    colback=white,
-    colframe=orange!60!white,
+    colback=orange!5!white,
+    colframe=orange!80!black,
+    coltitle=white,
+    fonttitle=\bfseries\normalsize,
     fontupper=\itshape,
     #1
 }
 
-% Solution Box: Clean, structured layout
+% Solution Box: Light Green background
 \newtcolorbox{solutionbox}[1][]{
     title={Detailed Step-by-Step Solution},
-    colback=white,
+    colback=green!5!white,
     colframe=green!40!black,
+    coltitle=white,
+    fonttitle=\bfseries\normalsize,
     #1
 }
 
@@ -108,15 +115,13 @@ Remember that the probability of selecting a greedy action is $1 - \epsilon + \f
 
 \begin{solutionbox}
 \begin{center}
-\begin{tikzpicture}[x=1cm, y=1cm]
-    \draw[->] (0,0) -- (6,0) node[right] {Time};
-    \draw[->] (0,0) -- (0,3) node[above] {Reward};
-
+\begin{tikzpicture}[x=1cm, y=0.5cm]
+    \draw[->] (0,0) -- (6,0) node[right] {Pull Count};
+    \draw[->] (0,0) -- (0,11) node[above] {Reward Value};
     \foreach \x/\y in {1/2, 2/4, 3/2, 4/8}
-        \draw[fill=blue!30] (\x,0) rectangle (\x+0.5,\y/4);
-
-    \node at (5.25, 2.5) {$R_5=10$};
-    \draw[fill=red!30] (5,0) rectangle (5.5, 2.5);
+        \draw[fill=blue!30] (\x,0) rectangle (\x+0.5,\y);
+    \node[above] at (5.25, 10) {$R_5=10$};
+    \draw[fill=red!30] (5,0) rectangle (5.5, 10);
 \end{tikzpicture}
 \end{center}
 
@@ -187,11 +192,11 @@ Use the definition $Q_n = \frac{R_1 + \dots + R_{n-1}}{n-1}$. For part (b), appl
 \begin{center}
 \begin{tikzpicture}
   \draw[thick] (0,0) circle (1.5cm);
-  \foreach \angle in {0, 45, ..., 315}
-    \draw (\angle:1.3cm) -- (\angle:1.7cm);
-  \draw[->, ultra thick, red] (90:1.0cm) arc (90:-270:1.0cm);
-  \node[align=center] at (0,0) {Capacity\\$N=1000$};
-  \node[red] at (0, -2) {Overwrite Loop};
+  \foreach \angle in {0, 30, ..., 330}
+    \draw (\angle:1.4cm) -- (\angle:1.6cm);
+  \draw[->, ultra thick, red] (90:1.2cm) arc (90:-270:1.2cm);
+  \node[align=center, font=\small] at (0,0) {Circular Buffer\\$N=1000$};
+  \node[red, font=\footnotesize] at (0, -2) {FIFO Overwrite};
 \end{tikzpicture}
 \end{center}
 
@@ -318,6 +323,31 @@ $G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \dots$
 \end{guidebox}
 
 \begin{solutionbox}
+\begin{center}
+\begin{tikzpicture}
+    % Axis
+    \draw[->] (0,0) -- (6,0) node[right] {Arm};
+    \draw[->] (0,0) -- (0,3) node[above] {UCB Value};
+
+    % Bars
+    \draw[fill=blue!30] (1,0) rectangle (1.5, 1.76) node[midway, black] {};
+    \node[below] at (1.25, 0) {1};
+
+    \draw[fill=blue!30] (3,0) rectangle (3.5, 1.51) node[midway, black] {};
+    \node[below] at (3.25, 0) {2};
+
+    \draw[fill=green!30] (5,0) rectangle (5.5, 2.55) node[midway, black] {};
+    \node[below] at (5.25, 0) {3};
+
+    % Error bars (symbolic of exploration)
+    \draw[thick] (1.25, 0.8) -- (1.25, 1.76);
+    \draw[thick] (3.25, 1.0) -- (3.25, 1.51);
+    \draw[thick] (5.25, 1.2) -- (5.25, 2.55);
+
+    \node at (5.25, 2.8) {Max};
+\end{tikzpicture}
+\end{center}
+
 \textbf{1. Given:}
 \begin{itemize}
     \item Rewards: $R_1=2, R_2=0, R_3=5, R_4=10$.
