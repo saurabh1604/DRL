@@ -1,0 +1,1012 @@
+\documentclass[12pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{tikz}
+\usetikzlibrary{shapes, arrows, positioning, fit, calc}
+\usepackage{float}
+\usepackage{titlesec}
+
+% Define colors
+\definecolor{problemblue}{RGB}{230, 240, 255}
+\definecolor{solutiongreen}{RGB}{240, 255, 240}
+\definecolor{hintyellow}{RGB}{255, 250, 230}
+\definecolor{headerblue}{RGB}{0, 51, 102}
+
+% Custom tcolorbox for Problems
+\newtcolorbox{problembox}[2][]{
+    enhanced,
+    breakable,
+    colback=problemblue,
+    colframe=headerblue,
+    coltitle=white,
+    title={\textbf{Problem #2}},
+    fonttitle=\bfseries\large,
+    #1
+}
+
+% Custom tcolorbox for Guide/Hint
+\newtcolorbox{guidebox}[1][]{
+    enhanced,
+    breakable,
+    colback=hintyellow,
+    colframe=orange!80!black,
+    coltitle=black,
+    title={\textit{Guide / Hint}},
+    fonttitle=\bfseries\normalsize,
+    fontupper=\itshape,
+    attach boxed title to top left={xshift=5mm, yshift*=-3mm},
+    boxed title style={colback=orange!20},
+    #1
+}
+
+% Custom tcolorbox for Solution
+\newtcolorbox{solutionbox}[1][]{
+    enhanced,
+    breakable,
+    colback=solutiongreen,
+    colframe=green!40!black,
+    coltitle=white,
+    title={\textbf{Step-by-Step Solution}},
+    fonttitle=\bfseries\normalsize,
+    #1
+}
+
+\title{\textbf{\Huge Deep Reinforcement Learning Practice Guide}\\
+\large A Collection of 48 Exam-Style Numerical Problems with Detailed Solutions}
+\author{Comprehensive Preparation Material}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section*{Introduction}
+This practice guide contains 48 distinct numerical problems designed to test your understanding of Reinforcement Learning concepts, from basic Multi-Armed Bandits to advanced Deep RL architectures like AlphaGo.
+
+Each problem is structured with:
+\begin{itemize}
+    \item \textbf{Problem Statement}: A clear, exam-style question.
+    \item \textbf{Guide / Hint}: Initial steps or formulas to help you get started.
+    \item \textbf{Step-by-Step Solution}: A detailed walkthrough of the calculation.
+\end{itemize}
+
+\newpage
+
+% ----------------------------------------------------------------------
+% TOPIC 1: RL BASICS & MDPS
+% ----------------------------------------------------------------------
+\section{Topic 1: RL Basics \& MDPs}
+\textit{Topics Covered: Multi-Armed Bandits, Exploration vs Exploitation, Markov Decision Processes, Bellman Equations, Value Iteration, Policy Iteration.}
+
+% Problem 1.1
+\begin{problembox}{1.1: Epsilon-Greedy Action Selection}
+An agent uses an $\epsilon$-greedy policy with $\epsilon = 0.2$ to select actions in a state with 4 possible actions $\{a_1, a_2, a_3, a_4\}$. Currently, the estimated action values are $Q(a_1)=1.5, Q(a_2)=2.2, Q(a_3)=0.8, Q(a_4)=2.2$.
+Calculate the probability of selecting each action $a_i$ under this policy. Note that there is a tie for the greedy action.
+\end{problembox}
+\begin{guidebox}
+Remember that the probability of selecting a greedy action is $1 - \epsilon + \frac{\epsilon}{|A|}$ (split among ties) and a non-greedy action is $\frac{\epsilon}{|A|}$.
+\end{guidebox}
+\begin{solutionbox}
+1. Identify Greedy Actions: The maximum Q-value is $2.2$, shared by $a_2$ and $a_4$. So, $|A^*| = 2$. The total number of actions is $|A| = 4$.
+2. Probability of Exploration: The total exploration probability $\epsilon = 0.2$ is distributed equally among all actions: $\frac{0.2}{4} = 0.05$.
+3. Probability of Exploitation: The remaining probability $1 - \epsilon = 0.8$ is distributed equally among the greedy actions ($a_2, a_4$): $\frac{0.8}{2} = 0.4$.
+4. Total Probabilities:
+   - $\pi(a_1) = 0.05$ (Non-greedy)
+   - $\pi(a_2) = 0.05 + 0.4 = 0.45$ (Greedy)
+   - $\pi(a_3) = 0.05$ (Non-greedy)
+   - $\pi(a_4) = 0.05 + 0.4 = 0.45$ (Greedy)
+   Check sum: $0.05 + 0.45 + 0.05 + 0.45 = 1.0$.
+\end{solutionbox}
+
+% Problem 1.2
+\begin{problembox}{1.2: Sample Average Update}
+A bandit algorithm has pulled arm A 4 times with rewards: $\{2, 4, 2, 8\}$.
+(a) Calculate the current estimated value $Q_4(A)$.
+(b) The arm is pulled a 5th time and yields a reward of $R_5 = 10$. Update the Q-value using the incremental update rule $Q_{n+1} = Q_n + \frac{1}{n}(R_n - Q_n)$.
+\end{problembox}
+\begin{guidebox}
+Use the definition $Q_n = \frac{R_1 + \dots + R_{n-1}}{n-1}$. For part (b), apply the formula with $n=5$ (since it's the 5th update, using the count *including* the new reward). Note: standard notation is $Q_{k+1}$ after $k$ selections.
+\end{guidebox}
+\begin{solutionbox}
+(a) Current Estimate $Q_4(A)$:
+   Sum of rewards = $2 + 4 + 2 + 8 = 16$.
+   Count $n=4$.
+   $Q_4(A) = \frac{16}{4} = 4.0$.
+
+(b) Update with $R_5 = 10$:
+   New count $n=5$.
+   Old estimate $Q_{old} = 4.0$.
+   Formula: $Q_{new} = Q_{old} + \frac{1}{n}(R_{new} - Q_{old})$
+   $Q_5(A) = 4.0 + \frac{1}{5}(10 - 4.0)$
+   $Q_5(A) = 4.0 + 0.2(6)$
+   $Q_5(A) = 4.0 + 1.2 = 5.2$.
+\end{solutionbox}
+
+% Problem 1.3
+\begin{problembox}{1.3: UCB1 Action Selection}
+You have a 3-armed bandit. At time step $t=100$, the counts and estimated values are:
+- Arm 1: $N_1=20, Q_1=0.8$
+- Arm 2: $N_2=70, Q_2=1.0$
+- Arm 3: $N_3=10, Q_3=1.2$
+Using the UCB1 formula with exploration parameter $c=2$, which arm should be selected next? (Use $\ln t$ for the natural logarithm).
+\end{problembox}
+\begin{guidebox}
+Calculate $UCB = Q_a + c \sqrt{\frac{\ln t}{N_a}}$ for each arm.
+\end{guidebox}
+\begin{solutionbox}
+Given $t=100$, $\ln(100) \approx 4.605$.
+1. Arm 1:
+   $U_1 = 0.8 + 2 \sqrt{\frac{4.605}{20}} = 0.8 + 2 \sqrt{0.230} \approx 0.8 + 2(0.48) = 0.8 + 0.96 = 1.76$
+2. Arm 2:
+   $U_2 = 1.0 + 2 \sqrt{\frac{4.605}{70}} = 1.0 + 2 \sqrt{0.0658} \approx 1.0 + 2(0.256) = 1.0 + 0.51 = 1.51$
+3. Arm 3:
+   $U_3 = 1.2 + 2 \sqrt{\frac{4.605}{10}} = 1.2 + 2 \sqrt{0.4605} \approx 1.2 + 2(0.678) = 1.2 + 1.35 = 2.55$
+
+   Arm 3 has the highest UCB value (2.55) and is selected.
+\end{solutionbox}
+
+% Problem 1.4
+\begin{problembox}{1.4: Discounted Return Calculation}
+An episode of an MDP yields the following reward sequence: $R_1=2, R_2=0, R_3=5, R_4=10$. The episode terminates after $R_4$.
+Calculate the discounted return $G_0$ (from time $t=0$) with a discount factor $\gamma = 0.9$.
+\end{problembox}
+\begin{guidebox}
+$G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \dots$
+\end{guidebox}
+\begin{solutionbox}
+The return $G_0$ is the sum of discounted rewards starting from $t=0$ (receiving $R_1$).
+$G_0 = R_1 + \gamma R_2 + \gamma^2 R_3 + \gamma^3 R_4$
+Substitute values:
+$G_0 = 2 + 0.9(0) + (0.9)^2(5) + (0.9)^3(10)$
+$G_0 = 2 + 0 + 0.81(5) + 0.729(10)$
+$G_0 = 2 + 4.05 + 7.29$
+$G_0 = 13.34$.
+\end{solutionbox}
+
+% Problem 1.5
+\begin{problembox}{1.5: Bellman Expectation for $V_\pi$}
+Consider a state $s$ with two actions $a_1$ and $a_2$.
+- Under policy $\pi$: $\pi(a_1|s) = 0.6, \pi(a_2|s) = 0.4$.
+- Action $a_1$: transitions to $s'$ with probability 1.0, reward $R=2$. $V_\pi(s') = 10$.
+- Action $a_2$: transitions to $s''$ with probability 1.0, reward $R=-1$. $V_\pi(s'') = 5$.
+Calculate $V_\pi(s)$ assuming $\gamma=0.5$.
+\end{problembox}
+\begin{guidebox}
+$V_\pi(s) = \sum_a \pi(a|s) \sum_{s',r} p(s',r|s,a) [r + \gamma V_\pi(s')]$.
+\end{guidebox}
+\begin{solutionbox}
+1. Value of taking $a_1$:
+   $q_\pi(s, a_1) = R + \gamma V(s') = 2 + 0.5(10) = 2 + 5 = 7$.
+2. Value of taking $a_2$:
+   $q_\pi(s, a_2) = R + \gamma V(s'') = -1 + 0.5(5) = -1 + 2.5 = 1.5$.
+3. Average over policy:
+   $V_\pi(s) = 0.6(7) + 0.4(1.5)$
+   $V_\pi(s) = 4.2 + 0.6 = 4.8$.
+\end{solutionbox}
+
+% Problem 1.6
+\begin{problembox}{1.6: Bellman Optimality for $Q^*$}
+You are in state $s$ and considering action $a$. This action leads to two possible next states:
+- $s_{high}$: probability 0.8, Reward +5, $V^*(s_{high}) = 20$.
+- $s_{low}$: probability 0.2, Reward +1, $V^*(s_{low}) = 10$.
+Calculate $Q^*(s,a)$ with $\gamma=0.9$.
+\end{problembox}
+\begin{guidebox}
+$Q^*(s,a) = \sum_{s', r} p(s', r| s, a) [r + \gamma V^*(s')]$.
+\end{guidebox}
+\begin{solutionbox}
+We calculate the expected return for action $a$:
+1. Contribution from $s_{high}$:
+   $0.8 \times [5 + 0.9(20)] = 0.8 \times [5 + 18] = 0.8 \times 23 = 18.4$.
+2. Contribution from $s_{low}$:
+   $0.2 \times [1 + 0.9(10)] = 0.2 \times [1 + 9] = 0.2 \times 10 = 2.0$.
+3. Total $Q^*(s,a)$:
+   $18.4 + 2.0 = 20.4$.
+\end{solutionbox}
+
+% Problem 1.7
+\begin{problembox}{1.7: Finding Optimal Value $V^*$}
+In state $s$, there are 3 available actions. The Q-values for these actions have been computed as:
+$Q(s, a_1) = 15.5$
+$Q(s, a_2) = 18.2$
+$Q(s, a_3) = 12.0$
+(a) What is $V^*(s)$?
+(b) What is the optimal policy $\pi^*(s)$?
+\end{problembox}
+\begin{guidebox}
+$V^*(s) = \max_a Q^*(s,a)$. The optimal policy is deterministic and selects $\arg\max_a Q^*(s,a)$.
+\end{guidebox}
+\begin{solutionbox}
+(a) $V^*(s)$ is simply the maximum of the Q-values:
+   $V^*(s) = \max(15.5, 18.2, 12.0) = 18.2$.
+
+(b) The optimal policy selects the action corresponding to the max value:
+   $\pi^*(s) = a_2$ (deterministic).
+\end{solutionbox}
+
+% Problem 1.8
+\begin{problembox}{1.8: Policy Evaluation (Iterative)}
+Consider a 2-state MDP (States A, B) with discount $\gamma=0.5$.
+Current Value Estimates: $V_k(A) = 0, V_k(B) = 0$.
+Policy: Always go to the other state (A->B, B->A).
+Rewards: moving A->B gives +10, moving B->A gives +2.
+Perform one iteration of Policy Evaluation to find $V_{k+1}(A)$ and $V_{k+1}(B)$.
+\end{problembox}
+\begin{guidebox}
+$V_{k+1}(s) = \sum_{s'} p(s'|s,\pi(s)) [R + \gamma V_k(s')]$.
+\end{guidebox}
+\begin{solutionbox}
+1. Update for State A:
+   Transitions to B with prob 1. Reward = 10.
+   $V_{k+1}(A) = 1.0 \times [10 + 0.5 V_k(B)]$
+   $V_{k+1}(A) = 10 + 0.5(0) = 10$.
+
+2. Update for State B:
+   Transitions to A with prob 1. Reward = 2.
+   $V_{k+1}(B) = 1.0 \times [2 + 0.5 V_k(A)]$
+   $V_{k+1}(B) = 2 + 0.5(0) = 2$.
+
+   Result: $V_{k+1}(A)=10, V_{k+1}(B)=2$.
+\end{solutionbox}
+
+% Problem 1.9
+\begin{problembox}{1.9: Value Iteration Sweep}
+Using the same setup as Problem 1.8, but now assume we have actions.
+State A:
+- Action 'Stay': Reward +1, stays in A.
+- Action 'Move': Reward +10, goes to B.
+State B:
+- Action 'Stay': Reward +1, stays in B.
+- Action 'Move': Reward +2, goes to A.
+$\gamma = 0.5$. Initial $V_0(A)=0, V_0(B)=0$.
+Perform one sweep of Value Iteration to find $V_1(A)$.
+\end{problembox}
+\begin{guidebox}
+$V_{k+1}(s) = \max_a [R(s,a) + \gamma \sum p(s'|s,a) V_k(s')]$.
+\end{guidebox}
+\begin{solutionbox}
+Calculate Q-values for State A using $V_0$:
+1. $Q(A, \text{Stay}) = 1 + 0.5 V_0(A) = 1 + 0 = 1$.
+2. $Q(A, \text{Move}) = 10 + 0.5 V_0(B) = 10 + 0 = 10$.
+
+Update $V_1(A)$ by taking the max:
+$V_1(A) = \max(1, 10) = 10$.
+\end{solutionbox}
+
+% Problem 1.10
+\begin{problembox}{1.10: Grid World Probabilities}
+A robot is in a grid cell (2,2). It attempts to move North.
+- Success (moves N to (1,2)): 80\%
+- Slip Left (moves W to (2,1)): 10\%
+- Slip Right (moves E to (2,3)): 10\%
+The rewards are: +5 for reaching (1,2), -1 for hitting a wall (assume (2,1) is a wall, robot bounces back to (2,2)), 0 otherwise.
+Assume $\gamma=1$.
+Calculate the expected immediate reward $R(s, \text{North})$.
+\end{problembox}
+\begin{guidebox}
+Expected Reward = $\sum_{s'} p(s'|s,a) r(s,a,s')$.
+\end{guidebox}
+\begin{solutionbox}
+1. Outcome 1 (Success): Prob 0.8, Reward +5.
+2. Outcome 2 (Slip West/Wall): Prob 0.1, Reward -1 (bounces back).
+3. Outcome 3 (Slip East): Prob 0.1, Reward 0 (moves to (2,3)).
+Calculation:
+$E[R] = (0.8 \times 5) + (0.1 \times -1) + (0.1 \times 0)$
+$E[R] = 4.0 - 0.1 + 0$
+$E[R] = 3.9$.
+\end{solutionbox}
+
+% Problem 1.11
+\begin{problembox}{1.11: Infinite Horizon Return}
+An agent receives a constant reward $R=2$ at every time step forever.
+(a) If $\gamma=1$, what is the return $G_0$?
+(b) If $\gamma=0.9$, what is the return $G_0$?
+\end{problembox}
+\begin{guidebox}
+For infinite geometric series $\sum_{k=0}^\infty ar^k = \frac{a}{1-r}$ for $|r|<1$.
+\end{guidebox}
+\begin{solutionbox}
+(a) For $\gamma=1$:
+   $G_0 = 2 + 2 + 2 + \dots = \infty$. (The return diverges).
+
+(b) For $\gamma=0.9$:
+   This is a geometric series with $a=2, r=0.9$.
+   $G_0 = \sum_{k=0}^{\infty} \gamma^k R = R \frac{1}{1-\gamma}$.
+   $G_0 = 2 \frac{1}{1-0.9} = 2 \frac{1}{0.1} = 2 \times 10 = 20$.
+\end{solutionbox}
+
+% Problem 1.12
+\begin{problembox}{1.12: Comparing Policies}
+State Space $S=\{s_1, s_2\}$.
+Policy $\pi_1$: $V^{\pi_1}(s_1) = 10, V^{\pi_1}(s_2) = 5$.
+Policy $\pi_2$: $V^{\pi_2}(s_1) = 8, V^{\pi_2}(s_2) = 6$.
+Is $\pi_1 \ge \pi_2$ (strictly better or equal)? Why or why not?
+\end{problembox}
+\begin{guidebox}
+A policy $\pi$ is defined to be better than or equal to $\pi'$ if $V_\pi(s) \ge V_{\pi'}(s)$ for \textbf{all} $s \in S$.
+\end{guidebox}
+\begin{solutionbox}
+Let's check the condition for all states:
+- State $s_1$: $V^{\pi_1}(s_1) = 10 > V^{\pi_2}(s_1) = 8$. (Better)
+- State $s_2$: $V^{\pi_1}(s_2) = 5 < V^{\pi_2}(s_2) = 6$. (Worse)
+
+Since $\pi_1$ is better in $s_1$ but worse in $s_2$, neither policy is uniformly "better" than the other in the partial ordering of policies. $\pi_1 \not\ge \pi_2$.
+\end{solutionbox}
+\newpage
+
+% ----------------------------------------------------------------------
+% TOPIC 2: TABULAR METHODS
+% ----------------------------------------------------------------------
+\section{Topic 2: Tabular Methods}
+\textit{Topics Covered: Monte Carlo Methods, Temporal Difference Learning, SARSA, Q-Learning, n-Step TD, Eligibility Traces.}
+
+% Problem 2.1
+\begin{problembox}{2.1: Monte Carlo First-Visit vs Every-Visit}
+Consider the following episode in an MDP with $\gamma=1$:
+$S_1, R_1=1, S_2, R_2=2, S_1, R_3=3, S_3, R_4=0$ (Terminate).
+Calculate the return $G_t$ for each visit to state $S_1$.
+(a) What is the First-Visit return for $S_1$?
+(b) What are the returns considered for Every-Visit MC for $S_1$?
+\end{problembox}
+\begin{guidebox}
+The return $G_t$ is the sum of rewards from time $t$ onwards.
+\end{guidebox}
+\begin{solutionbox}
+The episode sequence is:
+$t=0: S_1 \xrightarrow{R=1} t=1: S_2 \xrightarrow{R=2} t=2: S_1 \xrightarrow{R=3} t=3: S_3 \xrightarrow{R=0} \text{End}$.
+
+Calculate returns from each time step:
+- From $t=0$ ($S_1$): $G_0 = 1 + 2 + 3 + 0 = 6$.
+- From $t=2$ ($S_1$): $G_2 = 3 + 0 = 3$.
+
+(a) First-Visit MC: Consider only the first time $S_1$ is visited ($t=0$).
+    Return = 6.
+
+(b) Every-Visit MC: Consider all visits ($t=0$ and $t=2$).
+    Returns = \{6, 3\}.
+\end{solutionbox}
+
+% Problem 2.2
+\begin{problembox}{2.2: Incremental Monte Carlo Update}
+You are estimating the value of state $A$.
+Current estimate $V(A) = 10$. Number of visits $N(A) = 4$.
+A new episode is observed with return $G = 20$ starting from $A$.
+Calculate the new value $V(A)$ using the incremental mean update.
+\end{problembox}
+\begin{guidebox}
+$V_{n+1} = V_n + \frac{1}{n+1}(G - V_n)$.
+\end{guidebox}
+\begin{solutionbox}
+New count $N(A) = 5$.
+$V_{new}(A) = 10 + \frac{1}{5}(20 - 10)$
+$V_{new}(A) = 10 + 0.2(10)$
+$V_{new}(A) = 10 + 2 = 12$.
+\end{solutionbox}
+
+% Problem 2.3
+\begin{problembox}{2.3: TD(0) Error Calculation}
+An agent transitions from $S_t$ to $S_{t+1}$ receiving reward $R_{t+1} = -1$.
+Current estimates: $V(S_t) = 5.0$, $V(S_{t+1}) = 4.5$.
+Discount $\gamma = 0.9$.
+Calculate the TD error $\delta_t$.
+\end{problembox}
+\begin{guidebox}
+$\delta_t = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)$.
+\end{guidebox}
+\begin{solutionbox}
+Substitute the values:
+$\delta_t = -1 + 0.9(4.5) - 5.0$
+$\delta_t = -1 + 4.05 - 5.0$
+$\delta_t = 3.05 - 5.0$
+$\delta_t = -1.95$.
+\end{solutionbox}
+
+% Problem 2.4
+\begin{problembox}{2.4: TD(0) Value Update}
+Using the TD error from Problem 2.3 ($\delta_t = -1.95$) and learning rate $\alpha = 0.1$, update the value of $V(S_t)$.
+\end{problembox}
+\begin{guidebox}
+$V(S_t) \leftarrow V(S_t) + \alpha \delta_t$.
+\end{guidebox}
+\begin{solutionbox}
+Old value $V(S_t) = 5.0$.
+Update:
+$V_{new}(S_t) = 5.0 + 0.1(-1.95)$
+$V_{new}(S_t) = 5.0 - 0.195$
+$V_{new}(S_t) = 4.805$.
+\end{solutionbox}
+
+% Problem 2.5
+\begin{problembox}{2.5: SARSA Update}
+State $S$, Action $A$. Reward $R=2$, Next State $S'$, Next Action $A'$.
+$Q(S,A) = 3.0, Q(S',A') = 4.5$.
+$\alpha=0.1, \gamma=0.9$.
+Calculate the new $Q(S,A)$ using the SARSA update rule.
+\end{problembox}
+\begin{guidebox}
+$Q(S,A) \leftarrow Q(S,A) + \alpha [R + \gamma Q(S',A') - Q(S,A)]$.
+\end{guidebox}
+\begin{solutionbox}
+Target = $R + \gamma Q(S',A') = 2 + 0.9(4.5) = 2 + 4.05 = 6.05$.
+TD Error $\delta = 6.05 - 3.0 = 3.05$.
+Update:
+$Q(S,A) \leftarrow 3.0 + 0.1(3.05)$
+$Q(S,A) \leftarrow 3.0 + 0.305 = 3.305$.
+\end{solutionbox}
+
+% Problem 2.6
+\begin{problembox}{2.6: Q-Learning Update}
+Same setup as Problem 2.5, but using Q-Learning.
+State $S$, Action $A$. Reward $R=2$, Next State $S'$.
+Next state available actions: $\{A'_1, A'_2\}$.
+$Q(S', A'_1) = 4.5, Q(S', A'_2) = 5.2$.
+$Q(S,A) = 3.0, \alpha=0.1, \gamma=0.9$.
+Calculate the new $Q(S,A)$.
+\end{problembox}
+\begin{guidebox}
+$Q(S,A) \leftarrow Q(S,A) + \alpha [R + \gamma \max_{a'} Q(S',a') - Q(S,A)]$.
+\end{guidebox}
+\begin{solutionbox}
+1. Find max Q in next state:
+   $\max(4.5, 5.2) = 5.2$.
+2. Calculate Target:
+   $Target = 2 + 0.9(5.2) = 2 + 4.68 = 6.68$.
+3. Update:
+   $Q(S,A) \leftarrow 3.0 + 0.1(6.68 - 3.0)$
+   $Q(S,A) \leftarrow 3.0 + 0.1(3.68)$
+   $Q(S,A) \leftarrow 3.368$.
+\end{solutionbox}
+
+% Problem 2.7
+\begin{problembox}{2.7: Expected SARSA}
+State $S$, Action $A$. Reward $R=2$, Next State $S'$.
+Policy $\pi$ at $S'$: 60\% chance to choose $A'_1$, 40\% chance to choose $A'_2$.
+$Q(S', A'_1) = 4.5, Q(S', A'_2) = 5.2$.
+$Q(S,A) = 3.0, \alpha=0.1, \gamma=0.9$.
+Calculate the update target for Expected SARSA.
+\end{problembox}
+\begin{guidebox}
+Target $= R + \gamma \sum_{a'} \pi(a'|S') Q(S',a')$.
+\end{guidebox}
+\begin{solutionbox}
+1. Calculate expected value of next state:
+   $V(S') = 0.6(4.5) + 0.4(5.2)$
+   $V(S') = 2.7 + 2.08 = 4.78$.
+2. Calculate Target:
+   $Target = 2 + 0.9(4.78)$
+   $Target = 2 + 4.302 = 6.302$.
+\end{solutionbox}
+
+% Problem 2.8
+\begin{problembox}{2.8: Cliff Walking Penalty}
+An agent is on a cliff edge.
+- Action 'Safe': moves to safe state, reward -1.
+- Action 'Fall': falls off cliff, reward -100, returns to start.
+Current Q-values: $Q(\text{Edge}, \text{Safe}) = -10, Q(\text{Edge}, \text{Fall}) = -50$.
+$\epsilon=0.1$.
+Calculate the expected return for one step from the 'Edge' state under an $\epsilon$-greedy policy.
+\end{problembox}
+\begin{guidebox}
+$E[R] = \sum_a \pi(a|s) Q(s,a)$ is not quite right; we want expected *immediate* reward plus next state value.
+Correction: Let's calculate the expected *action value* (V) under the policy.
+\end{guidebox}
+\begin{solutionbox}
+Policy Probabilities:
+- Greedy action: 'Safe' (-10 > -50).
+- $\pi(\text{Safe}) = 1 - \epsilon + \epsilon/2 = 0.9 + 0.05 = 0.95$.
+- $\pi(\text{Fall}) = \epsilon/2 = 0.05$.
+
+Expected Value $V_\pi(\text{Edge})$:
+$V = 0.95(-10) + 0.05(-50)$
+$V = -9.5 - 2.5 = -12.0$.
+\end{solutionbox}
+
+% Problem 2.9
+\begin{problembox}{2.9: n-Step TD Return}
+Calculate the 2-step return $G_{t:t+2}$ for the sequence:
+$S_t, R_{t+1}=1, S_{t+1}, R_{t+2}=2, S_{t+2}$.
+Given $V(S_{t+2}) = 10, \gamma=0.9$.
+\end{problembox}
+\begin{guidebox}
+$G_{t:t+n} = R_{t+1} + \gamma R_{t+2} + \dots + \gamma^{n-1} R_{t+n} + \gamma^n V(S_{t+n})$.
+\end{guidebox}
+\begin{solutionbox}
+For $n=2$:
+$G_{t:t+2} = R_{t+1} + \gamma R_{t+2} + \gamma^2 V(S_{t+2})$
+Substitute values:
+$G = 1 + 0.9(2) + (0.9)^2(10)$
+$G = 1 + 1.8 + 0.81(10)$
+$G = 2.8 + 8.1 = 10.9$.
+\end{solutionbox}
+
+% Problem 2.10
+\begin{problembox}{2.10: Double Q-Learning}
+We have two Q-tables $Q_1$ and $Q_2$.
+Current state $S$, Action $A$, Reward $R$, Next state $S'$.
+Update $Q_1(S,A)$.
+$Q_1(S,A)=3, Q_2(S,A)=3$.
+In state $S'$, $Q_1$ suggests best action is $A'_1$ (value 10), but $Q_2(S', A'_1) = 8$.
+$R=1, \gamma=0.9, \alpha=0.1$.
+\end{problembox}
+\begin{guidebox}
+Update $Q_1$ using the value of the action maximizing $Q_1$, but taken from $Q_2$.
+Target $= R + \gamma Q_2(S', \arg\max_a Q_1(S', a))$.
+\end{guidebox}
+\begin{solutionbox}
+1. Select best action according to $Q_1$: $a^* = A'_1$.
+2. Value of this action from $Q_2$: $Q_2(S', A'_1) = 8$.
+3. Target: $1 + 0.9(8) = 1 + 7.2 = 8.2$.
+4. Update $Q_1$:
+   $Q_1(S,A) \leftarrow 3 + 0.1(8.2 - 3)$
+   $Q_1(S,A) \leftarrow 3 + 0.52 = 3.52$.
+\end{solutionbox}
+
+% Problem 2.11
+\begin{problembox}{2.11: Eligibility Trace Accumulation}
+An accumulating trace $e_t(s)$ is used with $\lambda=0.5, \gamma=0.9$.
+At $t=0$, $e_0(s)=0$.
+At $t=1$, state $s$ is visited.
+At $t=2$, state $s$ is visited again.
+Calculate $e_2(s)$ just after the visit.
+\end{problembox}
+\begin{guidebox}
+$e_t(s) = \gamma \lambda e_{t-1}(s) + \mathbf{1}(S_t=s)$.
+\end{guidebox}
+\begin{solutionbox}
+1. $t=1$: Visit $s$.
+   $e_1(s) = (\gamma \lambda \times 0) + 1 = 1$.
+2. $t=2$: Visit $s$ again. Decay then add.
+   Decay: $\gamma \lambda = 0.9 \times 0.5 = 0.45$.
+   $e_2(s) = (0.45 \times 1) + 1 = 1.45$.
+\end{solutionbox}
+
+% Problem 2.12
+\begin{problembox}{2.12: TD($\lambda$) Update}
+Using the trace $e_2(s)=1.45$ from Problem 2.11.
+Suppose at $t=2$ a TD error $\delta_2 = 2.0$ occurs.
+Update $V(s)$ given $\alpha=0.1$.
+\end{problembox}
+\begin{guidebox}
+$\Delta V(s) = \alpha \delta_t e_t(s)$.
+\end{guidebox}
+\begin{solutionbox}
+$\Delta V = 0.1 \times 2.0 \times 1.45$
+$\Delta V = 0.2 \times 1.45 = 0.29$.
+New $V(s) = V_{old}(s) + 0.29$.
+\end{solutionbox}
+\newpage
+% ----------------------------------------------------------------------
+% TOPIC 3: VALUE FUNCTION APPROXIMATION & DEEP RL
+% ----------------------------------------------------------------------
+\section{Topic 3: Value Function Approximation \& Deep RL}
+\textit{Topics Covered: Linear Function Approximation, Gradient Descent, Deep Q-Networks (DQN), Loss Functions, Experience Replay, Policy Gradients.}
+
+% Problem 3.1
+\begin{problembox}{3.1: Linear Value Prediction}
+State $s$ is represented by a feature vector $\mathbf{x}(s) = [0.5, 1.0, -0.2]^T$.
+The current weight vector is $\mathbf{w} = [2.0, -1.0, 3.0]^T$.
+Calculate the estimated value $\hat{v}(s, \mathbf{w}) = \mathbf{w}^T \mathbf{x}(s)$.
+\end{problembox}
+\begin{guidebox}
+Perform the dot product: $w_1 x_1 + w_2 x_2 + w_3 x_3$.
+\end{guidebox}
+\begin{solutionbox}
+$\hat{v}(s) = (2.0 \times 0.5) + (-1.0 \times 1.0) + (3.0 \times -0.2)$
+$\hat{v}(s) = 1.0 - 1.0 - 0.6$
+$\hat{v}(s) = -0.6$.
+\end{solutionbox}
+
+% Problem 3.2
+\begin{problembox}{3.2: Linear SGD Update}
+Using the result from Problem 3.1 ($\hat{v}(s) = -0.6$).
+Suppose the true target value is $v_\pi(s) = 1.0$.
+Perform one SGD update on $\mathbf{w}$ with step size $\alpha = 0.1$.
+\end{problembox}
+\begin{guidebox}
+$\mathbf{w} \leftarrow \mathbf{w} + \alpha [v_\pi(s) - \hat{v}(s)] \mathbf{x}(s)$.
+\end{guidebox}
+\begin{solutionbox}
+Error $\delta = 1.0 - (-0.6) = 1.6$.
+Update:
+$\mathbf{w}_{new} = \mathbf{w} + 0.1(1.6) \mathbf{x}(s)$
+$\mathbf{w}_{new} = [2.0, -1.0, 3.0]^T + 0.16 [0.5, 1.0, -0.2]^T$
+$\mathbf{w}_{new} = [2.0, -1.0, 3.0]^T + [0.08, 0.16, -0.032]^T$
+$\mathbf{w}_{new} = [2.08, -0.84, 2.968]^T$.
+\end{solutionbox}
+
+% Problem 3.3
+\begin{problembox}{3.3: Neural Network Q-Value}
+A simple Q-network has:
+- Input state $x = [1, 0]$.
+- Hidden Layer $h$ (ReLU): Weights $W_1 = [[0.5, -0.2], [0.1, 0.8]]$ (2x2 matrix).
+- Output Layer $Q$ (Linear): Weights $W_2 = [1.0, -1.0]$ (1x2 matrix, one output for action $a$).
+Calculate $Q(s,a)$. Note: ReLU(z) = max(0, z).
+\end{problembox}
+\begin{guidebox}
+1. $z = W_1 x$. 2. $h = \text{ReLU}(z)$. 3. $Q = W_2 h$.
+\end{guidebox}
+\begin{solutionbox}
+1. Hidden pre-activation:
+   $z_1 = (0.5 \times 1) + (-0.2 \times 0) = 0.5$.
+   $z_2 = (0.1 \times 1) + (0.8 \times 0) = 0.1$.
+2. Hidden activation (ReLU):
+   $h_1 = \max(0, 0.5) = 0.5$.
+   $h_2 = \max(0, 0.1) = 0.1$.
+3. Output:
+   $Q = (1.0 \times 0.5) + (-1.0 \times 0.1) = 0.5 - 0.1 = 0.4$.
+\end{solutionbox}
+
+% Problem 3.4
+\begin{problembox}{3.4: DQN Loss Calculation}
+Current Q-network prediction $Q(s,a; \theta) = 3.5$.
+Target Network prediction $Q(s', a'; \theta^-) = 4.0$.
+Reward $R=1, \gamma=0.9$.
+Calculate the Squared Bellman Error Loss $L = \frac{1}{2}(y - Q)^2$.
+\end{problembox}
+\begin{guidebox}
+Target $y = R + \gamma \max_{a'} Q(s', a'; \theta^-)$. Assume the given value is already the max.
+\end{guidebox}
+\begin{solutionbox}
+1. Calculate Target $y$:
+   $y = 1 + 0.9(4.0) = 1 + 3.6 = 4.6$.
+2. Calculate Error:
+   $\delta = y - Q = 4.6 - 3.5 = 1.1$.
+3. Calculate Loss:
+   $L = 0.5(1.1)^2 = 0.5(1.21) = 0.605$.
+\end{solutionbox}
+
+% Problem 3.5
+\begin{problembox}{3.5: Gradient Descent Step}
+Given the loss gradient $\nabla_\theta L = 2.4$ and current parameter $\theta = 0.5$.
+Perform one gradient descent update with learning rate $\alpha=0.01$.
+\end{problembox}
+\begin{guidebox}
+$\theta \leftarrow \theta - \alpha \nabla_\theta L$.
+\end{guidebox}
+\begin{solutionbox}
+$\theta_{new} = 0.5 - 0.01(2.4)$
+$\theta_{new} = 0.5 - 0.024$
+$\theta_{new} = 0.476$.
+\end{solutionbox}
+
+% Problem 3.6
+\begin{problembox}{3.6: Experience Replay Buffer}
+A replay buffer has capacity $N=1000$.
+We store transitions $(S_t, A_t, R_{t+1}, S_{t+1})$ every step.
+If we train for 5000 steps, how many times has the buffer been overwritten (completely filled and wrapped around)?
+\end{problembox}
+\begin{guidebox}
+Number of wraps = Total Steps / Capacity.
+\end{guidebox}
+\begin{solutionbox}
+Total steps = 5000.
+Capacity = 1000.
+Wraps = $5000 / 1000 = 5$.
+The buffer has been overwritten 4 times (filled once, then overwritten 4 more times). Total 5 cycles.
+\end{solutionbox}
+
+% Problem 3.7
+\begin{problembox}{3.7: Huber Loss}
+Calculate the Huber Loss for an error $\delta = 1.5$ with threshold $\delta_{check} = 1.0$.
+Formula: $L_\delta = \begin{cases} 0.5 \delta^2 & |\delta| \le 1 \\ |\delta| - 0.5 & |\delta| > 1 \end{cases}$.
+\end{problembox}
+\begin{guidebox}
+Check if $|\delta| > 1$.
+\end{guidebox}
+\begin{solutionbox}
+Since $|\delta| = 1.5 > 1.0$, use the linear part:
+$L = 1.5 - 0.5 = 1.0$.
+(Compare to MSE: $0.5(1.5)^2 = 1.125$. Huber is smaller).
+\end{solutionbox}
+
+% Problem 3.8
+\begin{problembox}{3.8: Double DQN Target}
+State $S'$, Actions $\{a_1, a_2\}$.
+Online Net $Q_\theta$: $Q(S', a_1) = 3.0, Q(S', a_2) = 4.0$.
+Target Net $Q_{\theta^-}$: $Q(S', a_1) = 2.5, Q(S', a_2) = 2.0$.
+Reward $R=1, \gamma=0.9$.
+Calculate the Double DQN Target $y$.
+\end{problembox}
+\begin{guidebox}
+$y = R + \gamma Q_{\theta^-}(S', \arg\max_a Q_\theta(S', a))$.
+\end{guidebox}
+\begin{solutionbox}
+1. Select action using Online Net:
+   $\arg\max Q_\theta = a_2$ (since $4.0 > 3.0$).
+2. Evaluate that action using Target Net:
+   $Q_{\theta^-}(S', a_2) = 2.0$.
+3. Calculate Target:
+   $y = 1 + 0.9(2.0) = 1 + 1.8 = 2.8$.
+\end{solutionbox}
+
+% Problem 3.9
+\begin{problembox}{3.9: Dueling DQN Architecture}
+A Dueling DQN outputs Value $V(s) = 5.0$ and Advantages $A(s, a_1) = -0.5, A(s, a_2) = 0.5$.
+Using the simple aggregation $Q(s,a) = V(s) + A(s,a)$, calculate $Q(s, a_1)$ and $Q(s, a_2)$.
+\end{problembox}
+\begin{guidebox}
+Just add them up.
+\end{guidebox}
+\begin{solutionbox}
+1. $Q(s, a_1) = 5.0 + (-0.5) = 4.5$.
+2. $Q(s, a_2) = 5.0 + 0.5 = 5.5$.
+\end{solutionbox}
+
+% Problem 3.10
+\begin{problembox}{3.10: Prioritized Replay Probability}
+Two transitions in buffer.
+Transition 1: TD Error $\delta_1 = 2.0$.
+Transition 2: TD Error $\delta_2 = 1.0$.
+Exponent $\alpha = 1$ (proportional).
+Calculate the probability $P(1)$ of sampling Transition 1.
+\end{problembox}
+\begin{guidebox}
+$P(i) = |\delta_i|^\alpha / \sum |\delta_j|^\alpha$.
+\end{guidebox}
+\begin{solutionbox}
+Sum of errors = $|2.0| + |1.0| = 3.0$.
+$P(1) = 2.0 / 3.0 \approx 0.67$.
+$P(2) = 1.0 / 3.0 \approx 0.33$.
+\end{solutionbox}
+
+% Problem 3.11
+\begin{problembox}{3.11: Policy Gradient (REINFORCE)}
+Trajectory $\tau$: Action $a_t$ taken.
+Return $G_t = 10$.
+Policy Output $\pi(a_t|s_t) = 0.2$.
+Calculate $\nabla_\theta J(\theta)$ approximation using $\nabla \ln \pi = \frac{1}{\pi} \nabla \pi$.
+Assume $\nabla_\theta \pi(a_t|s_t) = 0.05$.
+\end{problembox}
+\begin{guidebox}
+$\nabla J \approx G_t \nabla \ln \pi(a_t|s_t) = G_t \frac{\nabla \pi}{\pi}$.
+\end{guidebox}
+\begin{solutionbox}
+1. Calculate score function $\nabla \ln \pi$:
+   $\frac{0.05}{0.2} = 0.25$.
+2. Multiply by return:
+   $\nabla J \approx 10 \times 0.25 = 2.5$.
+\end{solutionbox}
+
+% Problem 3.12
+\begin{problembox}{3.12: Actor-Critic Update}
+Critic Error $\delta = 1.5$.
+Actor chooses action $a$ with probability $0.5$.
+Compatible feature $\psi(s,a) = \nabla \ln \pi(a|s) = [0.1, -0.1]^T$.
+Update actor weights $\theta$ with $\alpha=0.1$.
+\end{problembox}
+\begin{guidebox}
+$\theta \leftarrow \theta + \alpha \delta \psi(s,a)$.
+\end{guidebox}
+\begin{solutionbox}
+Update vector:
+$\Delta \theta = 0.1 \times 1.5 \times [0.1, -0.1]^T$
+$\Delta \theta = 0.15 \times [0.1, -0.1]^T$
+$\Delta \theta = [0.015, -0.015]^T$.
+\end{solutionbox}
+\newpage
+% ----------------------------------------------------------------------
+% TOPIC 4: MODEL-BASED & ADVANCED
+% ----------------------------------------------------------------------
+\section{Topic 4: Model-Based \& Advanced}
+\textit{Topics Covered: Monte Carlo Tree Search (MCTS), AlphaGo, AlphaZero, MuZero, Model-Based RL, Dyna-Q.}
+
+% Problem 4.1
+\begin{problembox}{4.1: MCTS UCT Calculation}
+A node $s$ in the search tree has been visited $N(s) = 50$ times.
+It has two children actions:
+- Action $a_1$: $N(s, a_1) = 10, Q(s, a_1) = 0.6$.
+- Action $a_2$: $N(s, a_2) = 40, Q(s, a_2) = 0.8$.
+Exploration constant $c_{uct} = \sqrt{2}$.
+Calculate the UCT value for $a_1$.
+\end{problembox}
+\begin{guidebox}
+$UCT(s,a) = Q(s,a) + c \sqrt{\frac{\ln N(s)}{N(s,a)}}$.
+\end{guidebox}
+\begin{solutionbox}
+1. Calculate exploration term:
+   $\ln(50) \approx 3.912$.
+   $\sqrt{\frac{3.912}{10}} = \sqrt{0.3912} \approx 0.625$.
+2. Multiply by $c$:
+   $1.414 \times 0.625 \approx 0.884$.
+3. Add Q-value:
+   $UCT(a_1) = 0.6 + 0.884 = 1.484$.
+\end{solutionbox}
+
+% Problem 4.2
+\begin{problembox}{4.2: MCTS Selection}
+Using the same setup as Problem 4.1.
+Calculate the UCT value for $a_2$ and determine which action is selected.
+\end{problembox}
+\begin{guidebox}
+Calculate $UCT(a_2)$ and compare with $UCT(a_1)$.
+\end{guidebox}
+\begin{solutionbox}
+1. Exploration term for $a_2$:
+   $\sqrt{\frac{3.912}{40}} = \sqrt{0.0978} \approx 0.313$.
+2. Multiply by $c$:
+   $1.414 \times 0.313 \approx 0.442$.
+3. Add Q-value:
+   $UCT(a_2) = 0.8 + 0.442 = 1.242$.
+
+   Comparison: $UCT(a_1) = 1.484 > UCT(a_2) = 1.242$.
+   Action selected: $a_1$.
+\end{solutionbox}
+
+% Problem 4.3
+\begin{problembox}{4.3: MCTS Backpropagation}
+A simulation starting from node $s_{leaf}$ results in a return $G = 1$.
+The path from root to leaf is $s_{root} \rightarrow a_1 \rightarrow s_1 \rightarrow a_2 \rightarrow s_{leaf}$.
+Current statistics:
+- $s_{root}: N=10, Q=0.5$.
+- $s_1: N=5, Q=0.4$.
+Update the values for $s_1$.
+\end{problembox}
+\begin{guidebox}
+$N \leftarrow N + 1$.
+$Q \leftarrow Q + \frac{1}{N}(G - Q)$.
+\end{guidebox}
+\begin{solutionbox}
+Update $s_1$:
+New $N = 5 + 1 = 6$.
+New $Q = 0.4 + \frac{1}{6}(1 - 0.4) = 0.4 + \frac{0.6}{6} = 0.4 + 0.1 = 0.5$.
+\end{solutionbox}
+
+% Problem 4.4
+\begin{problembox}{4.4: AlphaGo Value Network}
+The value network $v_\theta(s)$ predicts the probability of winning from state $s$.
+Output is a scalar in $[-1, 1]$ (using tanh) or $[0, 1]$ (using sigmoid). Let's assume tanh.
+If the network outputs $0.8$, what does this imply about the win probability?
+\end{problembox}
+\begin{guidebox}
+Map $[-1, 1]$ to probability. $P(\text{Win}) = \frac{v + 1}{2}$.
+\end{guidebox}
+\begin{solutionbox}
+$v = 0.8$.
+$P(\text{Win}) = \frac{0.8 + 1}{2} = \frac{1.8}{2} = 0.9$.
+The agent is 90\% confident of winning.
+\end{solutionbox}
+
+% Problem 4.5
+\begin{problembox}{4.5: AlphaZero Loss Function}
+Given a training example $(s, \pi_{MCTS}, z)$.
+- MCTS Policy $\pi_{MCTS} = [0.2, 0.8]$.
+- Neural Net Policy $p_\theta = [0.4, 0.6]$.
+- Actual Outcome $z = +1$.
+- Neural Net Value $v_\theta = 0.1$.
+Calculate the total loss $L = (z - v_\theta)^2 - \pi_{MCTS}^T \ln p_\theta$.
+(Ignore regularization).
+\end{problembox}
+\begin{guidebox}
+Squared error + Cross-entropy.
+\end{guidebox}
+\begin{solutionbox}
+1. Value Loss:
+   $(1 - 0.1)^2 = (0.9)^2 = 0.81$.
+2. Policy Loss (Cross Entropy):
+   $- [0.2 \ln(0.4) + 0.8 \ln(0.6)]$
+   $\approx - [0.2(-0.916) + 0.8(-0.511)]$
+   $= - [-0.183 - 0.409] = 0.592$.
+3. Total Loss:
+   $0.81 + 0.592 = 1.402$.
+\end{solutionbox}
+
+% Problem 4.6
+\begin{problembox}{4.6: MuZero Hidden State Dynamics}
+MuZero uses a dynamics function $g(s,a)$ to predict the next hidden state.
+Hidden state $h_t = [0.5, 0.5]$.
+Action $a_t$ is encoded as $[1, 0]$.
+Dynamics function is a simple matrix multiplication $W[h; a]$.
+$W = [[1, 0, 0, 0], [0, 1, 0, 0]]$ (Identity for h part).
+Calculate $h_{t+1}$.
+\end{problembox}
+\begin{guidebox}
+Concatenate $h$ and $a$, multiply by $W$.
+\end{guidebox}
+\begin{solutionbox}
+Input vector $x = [0.5, 0.5, 1, 0]^T$.
+$W$ is $2 \times 4$.
+Row 1: $1(0.5) + 0 + 0 + 0 = 0.5$.
+Row 2: $0 + 1(0.5) + 0 + 0 = 0.5$.
+Next hidden state $h_{t+1} = [0.5, 0.5]$.
+(Identity dynamics).
+\end{solutionbox}
+
+% Problem 4.7
+\begin{problembox}{4.7: Dyna-Q Planning}
+In Dyna-Q, the agent performs $N$ planning steps for every 1 real step.
+Real step: $(S, A, R, S')$. Update $Q(S,A)$.
+Planning: Select random observed $(S,A)$, get predicted $(R, S')$, update $Q$.
+If $N=5$, how many total Q-updates occur in one loop?
+\end{problembox}
+\begin{guidebox}
+Direct + Planned.
+\end{guidebox}
+\begin{solutionbox}
+1 Direct update from real experience.
+5 Planning updates from model.
+Total = 6 updates.
+\end{solutionbox}
+
+% Problem 4.8
+\begin{problembox}{4.8: Model Error Calculation}
+Learned Model $M(s,a) \rightarrow (r, s')$.
+True Environment $E(s,a) \rightarrow (10, s_{true})$.
+Model predicts $r = 8$.
+Calculate the prediction error for reward.
+\end{problembox}
+\begin{guidebox}
+$|r_{true} - r_{pred}|$.
+\end{guidebox}
+\begin{solutionbox}
+Error = $|10 - 8| = 2$.
+\end{solutionbox}
+
+% Problem 4.9
+\begin{problembox}{4.9: Curiosity Driven Exploration}
+Intrinsic reward $r_i$ is defined as the forward model prediction error.
+State $s_t$, Action $a_t$.
+True next state $\phi(s_{t+1}) = [1, 2]$.
+Predicted next state $\hat{\phi}(s_{t+1}) = [1.2, 1.8]$.
+Calculate $r_i = \frac{1}{2} \|\phi - \hat{\phi}\|^2$.
+\end{problembox}
+\begin{guidebox}
+Squared Euclidean distance.
+\end{guidebox}
+\begin{solutionbox}
+Difference vector: $[1 - 1.2, 2 - 1.8] = [-0.2, 0.2]$.
+Squared norm: $(-0.2)^2 + (0.2)^2 = 0.04 + 0.04 = 0.08$.
+$r_i = 0.5 \times 0.08 = 0.04$.
+\end{solutionbox}
+
+% Problem 4.10
+\begin{problembox}{4.10: Branching Factor in Search}
+A game has an average branching factor $b=3$.
+We search to depth $d=4$.
+How many leaf nodes are there in the full tree?
+\end{problembox}
+\begin{guidebox}
+$N = b^d$.
+\end{guidebox}
+\begin{solutionbox}
+$3^4 = 81$ leaf nodes.
+\end{solutionbox}
+
+% Problem 4.11
+\begin{problembox}{4.11: Rollout Policy vs Tree Policy}
+In MCTS, the Tree Policy uses UCT to select actions within the tree.
+The Rollout Policy uses random actions to simulate the rest of the game.
+If the Rollout Policy has a bias (e.g., favors capturing pieces), how does this affect the value estimate?
+\end{problembox}
+\begin{guidebox}
+Biased rollouts lead to biased value estimates.
+\end{guidebox}
+\begin{solutionbox}
+If the rollout policy is biased towards capturing, it might overestimate the value of aggressive states and underestimate defensive ones. The MCTS value $Q(s,a)$ will converge to the value of the game *under the rollout policy*, not necessarily the optimal Minimax value.
+\end{solutionbox}
+
+% Problem 4.12
+\begin{problembox}{4.12: AlphaGo Search Probabilities}
+The visit counts at the root are $N(a_1)=90, N(a_2)=10$.
+Temperature parameter $\tau = 1$.
+Calculate the policy $\pi(a|s)$ resulting from the search.
+\end{problembox}
+\begin{guidebox}
+$\pi(a|s) = N(a)^{1/\tau} / \sum N(b)^{1/\tau}$.
+\end{guidebox}
+\begin{solutionbox}
+For $\tau=1$:
+Total $N = 100$.
+$\pi(a_1) = 90 / 100 = 0.9$.
+$\pi(a_2) = 10 / 100 = 0.1$.
+\end{solutionbox}
+
+\end{document}
