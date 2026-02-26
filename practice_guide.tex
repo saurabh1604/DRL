@@ -9,7 +9,7 @@
 \usepackage{tcolorbox}
 \tcbuselibrary{skins, breakable}
 \usepackage{tikz}
-\usetikzlibrary{shapes, arrows, positioning, fit, calc}
+\usetikzlibrary{shapes, arrows, positioning, fit, calc, automata, arrows.meta}
 \usepackage{float}
 \usepackage{titlesec}
 
@@ -74,10 +74,18 @@ This practice guide contains 48 distinct numerical problems designed to test you
 
 Each problem is structured with:
 \begin{itemize}
-    \item \textbf{Problem Statement}: A clear, exam-style question.
+    \item \textbf{Problem Statement}: A clear, exam-style question, often framed in a real-world scenario (Finance, Robotics, Games).
     \item \textbf{Guide / Hint}: Initial steps or formulas to help you get started.
-    \item \textbf{Step-by-Step Solution}: A detailed walkthrough of the calculation.
+    \item \textbf{Step-by-Step Solution}: A detailed walkthrough of the calculation, often accompanied by visual diagrams.
 \end{itemize}
+
+\section*{How to Use This Guide}
+To maximize your learning:
+1.  **Attempt First**: Read the problem statement and try to solve it on paper before looking at the solution.
+2.  **Identify Variables**: Extract key variables ($S, A, R, \gamma, \alpha, \epsilon$) from the scenario text.
+3.  **Draw Diagrams**: For MDP and GridWorld problems, sketch the states and transitions.
+4.  **Check Formulas**: Refer to the "Guide / Hint" box if you are stuck on which formula to apply.
+5.  **Verify Calculation**: Compare your final numerical answer with the provided solution.
 
 \newpage
 
@@ -88,9 +96,9 @@ Each problem is structured with:
 \textit{Topics Covered: Multi-Armed Bandits, Exploration vs Exploitation, Markov Decision Processes, Bellman Equations, Value Iteration, Policy Iteration.}
 
 % Problem 1.1
-\begin{problembox}{1.1: Epsilon-Greedy Action Selection}
-An agent uses an $\epsilon$-greedy policy with $\epsilon = 0.2$ to select actions in a state with 4 possible actions $\{a_1, a_2, a_3, a_4\}$. Currently, the estimated action values are $Q(a_1)=1.5, Q(a_2)=2.2, Q(a_3)=0.8, Q(a_4)=2.2$.
-Calculate the probability of selecting each action $a_i$ under this policy. Note that there is a tie for the greedy action.
+\begin{problembox}{1.1: Epsilon-Greedy Portfolio Management}
+A high-frequency trading bot manages a portfolio with 4 crypto assets $\{a_1, a_2, a_3, a_4\}$. It uses an $\epsilon$-greedy policy with $\epsilon = 0.2$ to select which asset to buy. Currently, the estimated returns (Q-values) are $Q(a_1)=1.5, Q(a_2)=2.2, Q(a_3)=0.8, Q(a_4)=2.2$.
+Calculate the probability of selecting each asset $a_i$ under this policy. Note that there is a tie for the best asset.
 \end{problembox}
 \begin{guidebox}
 Remember that the probability of selecting a greedy action is $1 - \epsilon + \frac{\epsilon}{|A|}$ (split among ties) and a non-greedy action is $\frac{\epsilon}{|A|}$.
@@ -155,8 +163,12 @@ Given $t=100$, $\ln(100) \approx 4.605$.
 \end{solutionbox}
 
 % Problem 1.4
-\begin{problembox}{1.4: Discounted Return Calculation}
-An episode of an MDP yields the following reward sequence: $R_1=2, R_2=0, R_3=5, R_4=10$. The episode terminates after $R_4$.
+\begin{problembox}{1.4: Autonomous Vehicle Navigation}
+A self-driving car navigates a complex intersection. An episode yields the following reward sequence:
+- $t=1$: Correct turn ($R_1=2$)
+- $t=2$: Wait for light ($R_2=0$)
+- $t=3$: Avoid pedestrian ($R_3=5$)
+- $t=4$: Reach destination ($R_4=10$, Terminal)
 Calculate the discounted return $G_0$ (from time $t=0$) with a discount factor $\gamma = 0.9$.
 \end{problembox}
 \begin{guidebox}
@@ -184,6 +196,16 @@ Calculate $V_\pi(s)$ assuming $\gamma=0.5$.
 $V_\pi(s) = \sum_a \pi(a|s) \sum_{s',r} p(s',r|s,a) [r + \gamma V_\pi(s')]$.
 \end{guidebox}
 \begin{solutionbox}
+\begin{center}
+\begin{tikzpicture}[->, >=stealth', shorten >=1pt, auto, node distance=2.5cm, semithick]
+  \node[circle, draw] (s) {s};
+  \node[circle, draw, right of=s, yshift=1cm] (s1) {$s'$};
+  \node[circle, draw, right of=s, yshift=-1cm] (s2) {$s''$};
+
+  \path (s) edge node [above] {$a_1 (0.6)$} (s1)
+        (s) edge node [below] {$a_2 (0.4)$} (s2);
+\end{tikzpicture}
+\end{center}
 1. Value of taking $a_1$:
    $q_\pi(s, a_1) = R + \gamma V(s') = 2 + 0.5(10) = 2 + 5 = 7$.
 2. Value of taking $a_2$:
@@ -284,7 +306,7 @@ $V_1(A) = \max(1, 10) = 10$.
 
 % Problem 1.10
 \begin{problembox}{1.10: Grid World Probabilities}
-A robot is in a grid cell (2,2). It attempts to move North.
+A warehouse robot is in a grid cell (2,2). It attempts to move North.
 - Success (moves N to (1,2)): 80\%
 - Slip Left (moves W to (2,1)): 10\%
 - Slip Right (moves E to (2,3)): 10\%
@@ -487,19 +509,27 @@ Target $= R + \gamma \sum_{a'} \pi(a'|S') Q(S',a')$.
 \end{solutionbox}
 
 % Problem 2.8
-\begin{problembox}{2.8: Cliff Walking Penalty}
-An agent is on a cliff edge.
-- Action 'Safe': moves to safe state, reward -1.
-- Action 'Fall': falls off cliff, reward -100, returns to start.
+\begin{problembox}{2.8: Drone Cliff Walking}
+A drone flies along a narrow canyon (Cliff Walking).
+- Action 'Safe': moves to safe path, reward -1.
+- Action 'Fall': crashes (falls off cliff), reward -100, returns to start.
 Current Q-values: $Q(\text{Edge}, \text{Safe}) = -10, Q(\text{Edge}, \text{Fall}) = -50$.
 $\epsilon=0.1$.
 Calculate the expected return for one step from the 'Edge' state under an $\epsilon$-greedy policy.
 \end{problembox}
 \begin{guidebox}
-$E[R] = \sum_a \pi(a|s) Q(s,a)$ is not quite right; we want expected *immediate* reward plus next state value.
-Correction: Let's calculate the expected *action value* (V) under the policy.
+$E[R] = \sum_a \pi(a|s) Q(s,a)$ is not quite right; we want expected *action value* (V) under the policy.
 \end{guidebox}
 \begin{solutionbox}
+\begin{center}
+\begin{tikzpicture}[scale=1.5]
+  \draw[step=1cm,gray,very thin] (0,0) grid (4,1);
+  \fill[red!30] (1,0) rectangle (4,1);
+  \node at (0.5,0.5) {Start};
+  \node at (2.5,0.5) {Cliff (-100)};
+  \draw[->, thick, blue] (0.5,0.8) to[out=45,in=135] node[above] {Safe} (3.5,0.8);
+\end{tikzpicture}
+\end{center}
 Policy Probabilities:
 - Greedy action: 'Safe' (-10 > -50).
 - $\pi(\text{Safe}) = 1 - \epsilon + \epsilon/2 = 0.9 + 0.05 = 0.95$.
@@ -624,9 +654,9 @@ $\mathbf{w}_{new} = [2.08, -0.84, 2.968]^T$.
 \end{solutionbox}
 
 % Problem 3.3
-\begin{problembox}{3.3: Neural Network Q-Value}
-A simple Q-network has:
-- Input state $x = [1, 0]$.
+\begin{problembox}{3.3: Pong AI Q-Network}
+An AI playing Pong uses a simple Q-network.
+- Input state $x = [1, 0]$ (simplified feature).
 - Hidden Layer $h$ (ReLU): Weights $W_1 = [[0.5, -0.2], [0.1, 0.8]]$ (2x2 matrix).
 - Output Layer $Q$ (Linear): Weights $W_2 = [1.0, -1.0]$ (1x2 matrix, one output for action $a$).
 Calculate $Q(s,a)$. Note: ReLU(z) = max(0, z).
@@ -635,6 +665,21 @@ Calculate $Q(s,a)$. Note: ReLU(z) = max(0, z).
 1. $z = W_1 x$. 2. $h = \text{ReLU}(z)$. 3. $Q = W_2 h$.
 \end{guidebox}
 \begin{solutionbox}
+\begin{center}
+\begin{tikzpicture}[x=1.5cm, y=1.5cm, >=stealth]
+  \node[circle,draw,label=left:$x_1$] (I1) at (0,1) {1};
+  \node[circle,draw,label=left:$x_2$] (I2) at (0,0) {0};
+
+  \node[circle,draw,label=above:$h_1$] (H1) at (1,1) {$h_1$};
+  \node[circle,draw,label=below:$h_2$] (H2) at (1,0) {$h_2$};
+
+  \node[circle,draw,label=right:$Q$] (O) at (2,0.5) {$Q$};
+
+  \draw[->] (I1) -- (H1); \draw[->] (I1) -- (H2);
+  \draw[->] (I2) -- (H1); \draw[->] (I2) -- (H2);
+  \draw[->] (H1) -- (O); \draw[->] (H2) -- (O);
+\end{tikzpicture}
+\end{center}
 1. Hidden pre-activation:
    $z_1 = (0.5 \times 1) + (-0.2 \times 0) = 0.5$.
    $z_2 = (0.1 \times 1) + (0.8 \times 0) = 0.1$.
@@ -801,7 +846,7 @@ $\Delta \theta = [0.015, -0.015]^T$.
 
 % Problem 4.1
 \begin{problembox}{4.1: MCTS UCT Calculation}
-A node $s$ in the search tree has been visited $N(s) = 50$ times.
+In an AlphaGo-like game tree search, a node $s$ has been visited $N(s) = 50$ times.
 It has two children actions:
 - Action $a_1$: $N(s, a_1) = 10, Q(s, a_1) = 0.6$.
 - Action $a_2$: $N(s, a_2) = 40, Q(s, a_2) = 0.8$.
@@ -812,6 +857,13 @@ Calculate the UCT value for $a_1$.
 $UCT(s,a) = Q(s,a) + c \sqrt{\frac{\ln N(s)}{N(s,a)}}$.
 \end{guidebox}
 \begin{solutionbox}
+\begin{center}
+\begin{tikzpicture}[level/.style={sibling distance=20mm}]
+\node [circle,draw] (z){$s$ (50)}
+  child {node [circle,draw] (a) {$a_1$ (10)}}
+  child {node [circle,draw] (b) {$a_2$ (40)}};
+\end{tikzpicture}
+\end{center}
 1. Calculate exploration term:
    $\ln(50) \approx 3.912$.
    $\sqrt{\frac{3.912}{10}} = \sqrt{0.3912} \approx 0.625$.
